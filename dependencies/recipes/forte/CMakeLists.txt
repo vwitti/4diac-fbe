@@ -70,18 +70,25 @@ endif ()
 
 install(TARGETS forte DESTINATION bin)
 
+# Set build name
+if (FORTE_BUILD_EXECUTABLE)
+  set(TMP_FORTE_NAME forte${CMAKE_EXECUTABLE_SUFFIX})
+else()
+  set(TMP_FORTE_NAME libforte${CMAKE_STATIC_LIBRARY_SUFFIX})
+endif()
+
 if (CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
   if (WIN32)
     # Compress debug info, since for Win32 the linker is unable to do this on
     # the fly. This saves more than 1GB(!) of executable size.
     add_custom_target(forte.unstripped ALL
       DEPENDS forte
-      COMMAND ${CMAKE_OBJCOPY} --compress-debug-sections forte/forte${CMAKE_EXECUTABLE_SUFFIX})
+      COMMAND ${CMAKE_OBJCOPY} --compress-debug-sections forte/${TMP_FORTE_NAME})
   else ()
-    add_custom_target(forte.unstripped ALL DEPENDS forte)
+    add_custom_target(forte.unstripped ALL DEPENDS ${TMP_FORTE_NAME})
   endif()
 else ()
-  add_custom_target(forte.stripped ALL
-    DEPENDS forte
-    COMMAND ${CMAKE_STRIP} forte/forte${CMAKE_EXECUTABLE_SUFFIX})
+    add_custom_target(forte.stripped ALL
+      DEPENDS forte
+      COMMAND ${CMAKE_STRIP} forte/${TMP_FORTE_NAME})
 endif ()
